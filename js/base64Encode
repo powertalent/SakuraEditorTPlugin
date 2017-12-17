@@ -1,0 +1,37 @@
+var fsDoOverwrite     = true  // Overwrite file with base64 code
+var fsAsASCII         = false // Create base64 code file as ASCII file
+var adTypeBinary      = 1     // Binary file is encoded
+
+function encode(from, to) {
+    var inputStream = WScript.CreateObject("ADODB.Stream");
+    inputStream.Type = adTypeBinary
+    inputStream.Open();
+    inputStream.LoadFromFile(from);
+    
+    var xml = WScript.CreateObject("MSXml2.DOMDocument");
+    var element = xml.createElement("Base64Data");
+    element.dataType = "bin.base64";
+    
+    element.nodeTypedValue = inputStream.Read();
+    
+    inputStream.Close();
+    
+    var fileSystem = WScript.CreateObject("Scripting.FileSystemObject");
+    var outputStream = fileSystem.CreateTextFile(to, fsDoOverwrite, fsAsASCII);
+    
+    outputStream.Write(element.text.replace(/\n/g, ""));
+    outputStream.Close();
+}
+
+function getTxtName(name) {
+    return name + ".txt";
+}
+
+function main() {
+    var args = WScript.Arguments;
+    for(i = 0; i < args.length; ++i) {
+        encode(args(i), getTxtName(args(i)));
+    }
+}
+
+main();
